@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 import random
 from collections import deque
+from snake_game import Direction, Point
 
 class Linear_QNet(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
@@ -37,6 +38,13 @@ class QTrainer:
         self.criterion = nn.MSELoss()
 
     def train_step(self, state, action, reward, next_state, done):
+        # Convert to numpy arrays first for efficiency
+        state = np.array(state, dtype=np.float32)
+        next_state = np.array(next_state, dtype=np.float32)
+        action = np.array(action, dtype=np.int64)
+        reward = np.array(reward, dtype=np.float32)
+        
+        # Now convert to tensors
         state = torch.tensor(state, dtype=torch.float)
         next_state = torch.tensor(next_state, dtype=torch.float)
         action = torch.tensor(action, dtype=torch.long)

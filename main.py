@@ -2,7 +2,7 @@ import pygame
 from snake_game import SnakeGameAI, Direction
 from dqn_agent import Agent
 import numpy as np
-
+import torch
 def play_human():
     """Play Snake manually with arrow keys"""
     game = SnakeGameAI()
@@ -55,11 +55,12 @@ def menu():
     print("\n🐍 Snake AI Project 🤖")
     print("=" * 30)
     print("1. Play Snake manually")
-    print("2. Train AI")
-    print("3. Watch AI play")
-    print("4. Exit")
+    print("2. Train AI (console only - recommended)")
+    print("3. Train AI (with live plots - may cause issues)")
+    print("4. Watch AI play")
+    print("5. Exit")
     
-    choice = input("\nSelect option (1-4): ")
+    choice = input("\nSelect option (1-5): ")
     
     if choice == '1':
         play_human()
@@ -67,9 +68,12 @@ def menu():
         from train import train
         train()
     elif choice == '3':
+        from train import train_with_plot
+        train_with_plot()
+    elif choice == '4':
         import torch
         play_ai()
-    elif choice == '4':
+    elif choice == '5':
         print("Goodbye! 👋")
         exit()
     else:
