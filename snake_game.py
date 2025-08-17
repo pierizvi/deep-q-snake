@@ -25,7 +25,7 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 
 BLOCK_SIZE = 20
-SPEED = 40
+SPEED = 10  # Reduced from 40 - much more comfortable viewing speed
 
 class SnakeGameAI:
     
@@ -67,6 +67,9 @@ class SnakeGameAI:
                 pygame.quit()
                 quit()
         
+        # Store previous distance to food for reward calculation
+        prev_distance = abs(self.head.x - self.food.x) + abs(self.head.y - self.food.y)
+        
         # 2. move
         self._move(action) # update the head
         self.snake.insert(0, self.head)
@@ -74,18 +77,27 @@ class SnakeGameAI:
         # 3. check if game over
         reward = 0
         game_over = False
-        if self.is_collision() or self.frame_iteration > 100*len(self.snake):
+        # Increased timeout - give AI more time to find food
+        if self.is_collision() or self.frame_iteration > 200*len(self.snake) + 500:
             game_over = True
             reward = -10
             return reward, game_over, self.score
+        
+        # Calculate new distance to food
+        new_distance = abs(self.head.x - self.food.x) + abs(self.head.y - self.food.y)
             
         # 4. place new food or just move
         if self.head == self.food:
             self.score += 1
-            reward = 10
+            reward = 10  # Big reward for eating food
             self._place_food()
         else:
             self.snake.pop()
+            # NEW: Reward system for getting closer to food
+            if new_distance < prev_distance:
+                reward = 1  # Small reward for moving closer
+            else:
+                reward = -0.1  # Small penalty for moving away
         
         # 5. update ui and clock
         self._update_ui()

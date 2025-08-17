@@ -1,8 +1,9 @@
 import pygame
 from snake_game import SnakeGameAI, Direction
 from dqn_agent import Agent
-import numpy as np
+import numpy as np 
 import torch
+
 def play_human():
     """Play Snake manually with arrow keys"""
     game = SnakeGameAI()

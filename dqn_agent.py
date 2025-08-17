@@ -86,7 +86,7 @@ class Agent:
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=100_000) # popleft()
-        self.model = Linear_QNet(11, 256, 3)
+        self.model = Linear_QNet(22, 512, 3)  # Increased from 11 to 22 inputs, larger hidden layer
         self.trainer = QTrainer(self.model, lr=0.001, gamma=self.gamma)
 
     def get_state(self, game):
@@ -101,8 +101,24 @@ class Agent:
         dir_u = game.direction == Direction.UP
         dir_d = game.direction == Direction.DOWN
 
+        # Calculate distances to food (normalized)
+        food_distance_x = (game.food.x - head.x) / game.w
+        food_distance_y = (game.food.y - head.y) / game.h
+        
+        # Calculate distance to walls (normalized)
+        wall_dist_l = head.x / game.w
+        wall_dist_r = (game.w - head.x) / game.w
+        wall_dist_u = head.y / game.h
+        wall_dist_d = (game.h - head.y) / game.h
+        
+        # Check for body parts in multiple directions
+        body_left = any(part.x == head.x - 20 and part.y == head.y for part in game.snake[1:])
+        body_right = any(part.x == head.x + 20 and part.y == head.y for part in game.snake[1:])
+        body_up = any(part.x == head.x and part.y == head.y - 20 for part in game.snake[1:])
+        body_down = any(part.x == head.x and part.y == head.y + 20 for part in game.snake[1:])
+
         state = [
-            # Danger straight
+            # Immediate danger in each direction
             (dir_r and game.is_collision(point_r)) or 
             (dir_l and game.is_collision(point_l)) or 
             (dir_u and game.is_collision(point_u)) or 
@@ -126,14 +142,33 @@ class Agent:
             dir_u,
             dir_d,
             
-            # Food location 
+            # Food location relative to head
             game.food.x < game.head.x,  # food left
             game.food.x > game.head.x,  # food right
             game.food.y < game.head.y,  # food up
-            game.food.y > game.head.y  # food down
-            ]
+            game.food.y > game.head.y,  # food down
+            
+            # NEW: Distance information
+            food_distance_x,  # horizontal distance to food (can be negative)
+            food_distance_y,  # vertical distance to food (can be negative)
+            
+            # NEW: Wall distances
+            wall_dist_l,
+            wall_dist_r,
+            wall_dist_u,
+            wall_dist_d,
+            
+            # NEW: Body collision detection
+            body_left,
+            body_right,
+            body_up,
+            body_down,
+            
+            # NEW: Snake length (normalized)
+            len(game.snake) / 100.0
+        ]
 
-        return np.array(state, dtype=int)
+        return np.array(state, dtype=float)
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done)) # popleft if MAX_MEMORY is reached
@@ -153,10 +188,11 @@ class Agent:
         self.trainer.train_step(state, action, reward, next_state, done)
 
     def get_action(self, state):
-        # random moves: tradeoff exploration / exploitation
-        self.epsilon = 80 - self.n_games
+        # Better exploration strategy
+        self.epsilon = max(10, 100 - self.n_games)  # Slower decay, minimum 10% exploration
         final_move = [0,0,0]
-        if random.randint(0, 200) < self.epsilon:
+        
+        if random.randint(0, 100) < self.epsilon:
             move = random.randint(0, 2)
             final_move[move] = 1
         else:
