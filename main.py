@@ -1,8 +1,7 @@
 import pygame
 from snake_game import SnakeGameAI, Direction
 from dqn_agent import Agent
-import numpy as np 
-import torch
+import numpy as np
 
 def play_human():
     """Play Snake manually with arrow keys"""
@@ -32,15 +31,23 @@ def play_human():
 def play_ai():
     """Watch trained AI play Snake"""
     agent = Agent()
+    # CRITICAL: Set epsilon to 0 for pure exploitation
+    agent.epsilon = 0
+    agent.n_games = 1000  # Ensure epsilon calculation gives 0
+    
     # Load trained model
     try:
+        import torch
         agent.model.load_state_dict(torch.load('./models/model.pth'))
         print("Loaded trained model!")
-    except:
-        print("No trained model found. Train first by running train.py")
+        print(f"Agent epsilon: {agent.epsilon}")
+        print(f"Agent n_games: {agent.n_games}")
+    except Exception as e:
+        print(f"Error loading model: {e}")
         return
         
     game = SnakeGameAI()
+    game_count = 0
     
     while True:
         state = agent.get_state(game)
@@ -48,7 +55,17 @@ def play_ai():
         reward, game_over, score = game.play_step(action)
         
         if game_over:
+            game_count += 1
             print(f'AI Score: {score}')
+            
+            # Debug info every 10 games
+            if game_count % 10 == 0:
+                print(f"--- Debug Info (Game {game_count}) ---")
+                print(f"Current epsilon: {agent.epsilon}")
+                print(f"Sample state: {state[:5]}...")  # First 5 state values
+                print(f"Action taken: {action}")
+                print("-" * 30)
+            
             game.reset()
 
 def menu():
