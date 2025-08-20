@@ -1,4 +1,4 @@
-# Snake AI Project 🐍🤖
+# Snake AI Project 
 
 (DQN) implementation that learns to play Snake through reinforcement learning.
 
