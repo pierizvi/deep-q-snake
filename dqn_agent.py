@@ -303,17 +303,41 @@ class Agent:
         self.trainer.train_step(state, action, reward, next_state, done)
 
     def get_action(self, state):
-        # Enhanced exploration strategy for obstacle-rich environment
-        self.epsilon = max(5, 80 - self.n_games)  # Longer exploration period
         final_move = [0, 0, 0]
         
-        if random.randint(0, 100) < self.epsilon:
-            move = random.randint(0, 2)
-            final_move[move] = 1
-        else:
+        # Check if we're in inference mode (watching trained model)
+        if hasattr(self, '_inference_mode') and self._inference_mode:
+            # PURE EXPLOITATION - NO randomness at all
             state0 = torch.tensor(state, dtype=torch.float)
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
             final_move[move] = 1
+        else:
+            # Training mode - use epsilon-greedy
+            self.epsilon = max(0, 80 - self.n_games)
+            
+            if random.randint(0, 100) < self.epsilon:
+                move = random.randint(0, 2)
+                final_move[move] = 1
+            else:
+                state0 = torch.tensor(state, dtype=torch.float)
+                prediction = self.model(state0)
+                move = torch.argmax(prediction).item()
+                final_move[move] = 1
 
         return final_move
+
+    def set_inference_mode(self):
+        """Set agent to inference mode (pure exploitation, no exploration)"""
+        self._inference_mode = True
+        self.epsilon = 0
+        print("🔒 Agent set to PURE EXPLOITATION mode (epsilon locked at 0)")
+        
+    def set_training_mode(self):
+        """Set agent back to training mode"""
+        self._inference_mode = False
+        print("🎓 Agent set to TRAINING mode (epsilon-greedy)")
+        
+    def is_exploiting(self):
+        """Check if agent is in pure exploitation mode"""
+        return hasattr(self, '_inference_mode') and self._inference_mode

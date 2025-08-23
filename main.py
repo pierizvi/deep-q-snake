@@ -5,11 +5,26 @@ import numpy as np
 
 def play_human():
     """Play Snake manually with arrow keys - enhanced with obstacle information"""
-    game = SnakeGameAI()
+    print("Select game speed:")
+    print("1. Slow (10 FPS) - Easy to see")
+    print("2. Medium (20 FPS) - Balanced")  
+    print("3. Fast (30 FPS) - Challenge")
+    print("4. Very Fast (40 FPS) - Expert")
+    
+    try:
+        choice = int(input("Choose speed (1-4): "))
+        speeds = {1: 10, 2: 20, 3: 30, 4: 40}
+        selected_speed = speeds.get(choice, 20)
+    except:
+        selected_speed = 20
+        
+    game = SnakeGameAI(speed=selected_speed)
     
     print("🎮 Human Controls:")
     print("   ⬅️ Left Arrow: Turn Left")
     print("   ➡️ Right Arrow: Turn Right")
+    print("   + Key: Increase speed")
+    print("   - Key: Decrease speed")
     print("   🟠 Orange blocks: Moving obstacles (avoid them!)")
     print("   🍎 Red block: Food (collect it!)")
     print("   🎯 CHALLENGE: Start with 6 obstacles, +1 per food eaten!")
@@ -62,8 +77,21 @@ def play_human():
 
 def play_ai():
     """Watch trained AI play Snake with enhanced debugging"""
+    print("Select viewing speed:")
+    print("1. Slow (10 FPS) - Easy to watch")
+    print("2. Medium (20 FPS) - Balanced")  
+    print("3. Fast (30 FPS) - Quick training")
+    print("4. Very Fast (40 FPS) - Maximum speed")
+    
+    try:
+        choice = int(input("Choose speed (1-4): "))
+        speeds = {1: 10, 2: 20, 3: 30, 4: 40}
+        selected_speed = speeds.get(choice, 20)
+    except:
+        selected_speed = 20
+    
     agent = Agent()
-    game = SnakeGameAI()
+    game = SnakeGameAI(speed=selected_speed)
     
     # Initialize the model first by getting a state
     dummy_state = agent.get_state(game)
@@ -79,6 +107,7 @@ def play_ai():
         print("✅ Loaded trained model!")
         print(f"🧠 Agent epsilon: {agent.epsilon}")
         print(f"🎮 Agent games trained: {agent.n_games}")
+        print(f"🎬 Viewing at {selected_speed} FPS (press +/- to adjust)")
     except Exception as e:
         print(f"❌ Error loading model: {e}")
         print("💡 Make sure you have trained a model first (option 2 or 3)")
@@ -160,17 +189,26 @@ def compare_models():
         print("❌ No model files found. Train a model first!")
         return
     
-    print("🔍 Available models:")
-    for i, model_file in enumerate(model_files):
+    # Sort by modification time (newest first)
+    model_files_with_time = []
+    for f in model_files:
+        full_path = os.path.join(models_dir, f)
+        mod_time = os.path.getmtime(full_path)
+        model_files_with_time.append((f, mod_time))
+    
+    model_files_with_time.sort(key=lambda x: x[1], reverse=True)
+    
+    print("🔍 Available models (sorted by newest first):")
+    for i, (model_file, _) in enumerate(model_files_with_time):
         print(f"   {i+1}. {model_file}")
     
     try:
         choice = int(input("Select model to test (number): ")) - 1
-        if choice < 0 or choice >= len(model_files):
+        if choice < 0 or choice >= len(model_files_with_time):
             print("❌ Invalid choice")
             return
         
-        selected_model = model_files[choice]
+        selected_model = model_files_with_time[choice][0]
         print(f"🧪 Testing model: {selected_model}")
         
         # Test the selected model
@@ -179,7 +217,7 @@ def compare_models():
         
         # Initialize the model first
         dummy_state = agent.get_state(game)
-        agent.epsilon = 0
+        agent.set_inference_mode()  # No exploration for testing
         
         import torch
         agent.model.load_state_dict(torch.load(os.path.join(models_dir, selected_model)))
@@ -187,34 +225,61 @@ def compare_models():
         # Run quick performance test
         scores = []
         obstacle_hits = 0
+        max_obstacles_reached = 6
+        
+        print(f"🧪 Running 20 test games with {selected_model}...")
         
         for test_game in range(20):  # Test 20 games
-            total_reward = 0
+            max_obstacles_this_game = 6
             while True:
                 state = agent.get_state(game)
                 action = agent.get_action(state)
                 reward, done, score = game.play_step(action)
-                total_reward += reward
+                
+                # Track max obstacles reached this game
+                current_obstacles = len(game.obstacles) if hasattr(game, 'obstacles') else 6
+                max_obstacles_this_game = max(max_obstacles_this_game, current_obstacles)
                 
                 if done:
                     scores.append(score)
+                    max_obstacles_reached = max(max_obstacles_reached, max_obstacles_this_game)
+                    
                     # Check if obstacle collision
                     head = game.head
                     obstacle_positions = [obs['pos'] for obs in game.obstacles]
                     if head in obstacle_positions:
                         obstacle_hits += 1
+                    
+                    print(f"Test game {test_game + 1}: Score {score}, Max obstacles: {max_obstacles_this_game}")
                     game.reset()
                     break
         
         avg_score = sum(scores) / len(scores)
         max_score = max(scores)
+        min_score = min(scores)
         obstacle_avoidance = ((20 - obstacle_hits) / 20) * 100
+        success_rate = (len([s for s in scores if s > 0]) / 20) * 100
         
-        print(f"\n📊 Model Performance ({selected_model}):")
+        print(f"\n📊 Model Performance Analysis ({selected_model}):")
         print(f"   Average Score: {avg_score:.2f}")
         print(f"   Best Score: {max_score}")
+        print(f"   Worst Score: {min_score}")
+        print(f"   Success Rate (Score > 0): {success_rate:.1f}%")
         print(f"   Obstacle Avoidance: {obstacle_avoidance:.1f}%")
-        print(f"   All Scores: {scores}")
+        print(f"   Max Obstacles Reached: {max_obstacles_reached}")
+        print(f"   Score Distribution: {scores}")
+        
+        # Performance rating
+        if avg_score >= 10:
+            rating = "🏆 EXCELLENT"
+        elif avg_score >= 5:
+            rating = "🥈 GOOD"
+        elif avg_score >= 2:
+            rating = "🥉 DECENT"
+        else:
+            rating = "📈 NEEDS IMPROVEMENT"
+            
+        print(f"   Overall Rating: {rating}")
         
     except ValueError:
         print("❌ Please enter a valid number")
