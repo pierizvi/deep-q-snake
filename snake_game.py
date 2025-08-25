@@ -115,7 +115,7 @@ class SnakeGameAI:
                 direction = random.choice(list(Direction))
                 new_obstacle = {'pos': pos, 'dir': direction}
                 self.obstacles.append(new_obstacle)
-                print(f"🟠 Added obstacle! Total: {len(self.obstacles)}")
+                print(f"Added obstacle! Total: {len(self.obstacles)}")
                 break
             attempts += 1
                     

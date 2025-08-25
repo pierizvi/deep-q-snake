@@ -11,10 +11,10 @@ def train():
     agent = Agent()
     game = SnakeGameAI()
     
-    print("🤖 Starting Enhanced AI Training with Dynamic Obstacles...")
-    print("🎯 Goal: Start with 6 obstacles, +1 per food eaten")
-    print("📊 Training progress will be shown in console")
-    print("ℹ️  Press Ctrl+C to stop training and save model")
+    print("Starting Enhanced AI Training with Dynamic Obstacles...")
+    print("Goal: Start with 6 obstacles, +1 per food eaten")
+    print("Training progress will be shown in console")
+    print("Press Ctrl+C to stop training and save model")
     print("-" * 60)
     
     # Training statistics
@@ -71,7 +71,7 @@ def train():
                 if score > record:
                     record = score
                     agent.model.save()
-                    print(f"🎉 NEW RECORD! Game {agent.n_games}, Score: {score}, Max Obstacles: {current_obstacles}")
+                    print(f"NEW RECORD! Game {agent.n_games}, Score: {score}, Max Obstacles: {current_obstacles}")
 
                 # Calculate statistics
                 plot_scores.append(score)
@@ -95,44 +95,44 @@ def train():
                     self_collision_rate = collision_with_self / agent.n_games * 100
                     avg_food_per_game = food_collected / agent.n_games
                     
-                    print(f"\n📈 Progress Report - Game {agent.n_games}")
+                    print(f"\nProgress Report - Game {agent.n_games}")
                     print(f"   Recent 50 games average: {recent_avg:.2f}")
                     print(f"   Overall average: {mean_score:.2f}")
                     print(f"   Best score: {record}")
-                    print(f"   🏆 Max obstacles reached: {max_obstacles_reached}")
-                    print(f"   📊 Collision Analysis:")
-                    print(f"      🟠 Obstacles: {obstacle_collision_rate:.1f}%")
-                    print(f"      🔴 Walls: {wall_collision_rate:.1f}%")
-                    print(f"      🔵 Self: {self_collision_rate:.1f}%")
-                    print(f"   🍎 Average food per game: {avg_food_per_game:.2f}")
-                    print(f"   🧠 Current exploration rate: {epsilon:.0f}%")
-                    print(f"   🎯 Dynamic challenge working: 6→{max_obstacles_reached} obstacles")
+                    print(f"   Max obstacles reached: {max_obstacles_reached}")
+                    print(f"   Collision Analysis:")
+                    print(f"      Obstacles: {obstacle_collision_rate:.1f}%")
+                    print(f"      Walls: {wall_collision_rate:.1f}%")
+                    print(f"      Self: {self_collision_rate:.1f}%")
+                    print(f"   Average food per game: {avg_food_per_game:.2f}")
+                    print(f"   Current exploration rate: {epsilon:.0f}%")
+                    print(f"   Dynamic challenge working: 6→{max_obstacles_reached} obstacles")
                     print("-" * 60)
                 
                 # Milestone messages without checkpoints
                 if agent.n_games % 100 == 0:
-                    print(f"🚀 Milestone: {agent.n_games} games completed!")
+                    print(f"Milestone: {agent.n_games} games completed!")
                 
                 # Auto-save at major milestones
                 if agent.n_games % 500 == 0:
                     milestone_name = f'model_{agent.n_games}_games.pth'
                     agent.model.save(milestone_name)
-                    print(f"💾 Auto-saved milestone: {milestone_name}")
+                    print(f"Auto-saved milestone: {milestone_name}")
                     
     except KeyboardInterrupt:
-        print(f"\nℹ️  Training stopped by user")
-        print(f"📊 Final Statistics:")
+        print(f"\nTraining stopped by user")
+        print(f"Final Statistics:")
         print(f"   Games played: {agent.n_games}")
         print(f"   Best score: {record}")
         print(f"   Final average: {mean_score:.2f}")
-        print(f"   🏆 Max obstacles reached: {max_obstacles_reached}")
-        print(f"   🟠 Obstacle collisions: {collision_with_obstacles} ({collision_with_obstacles/agent.n_games*100:.1f}%)")
-        print(f"   🔴 Wall collisions: {collision_with_walls} ({collision_with_walls/agent.n_games*100:.1f}%)")
-        print(f"   🔵 Self collisions: {collision_with_self} ({collision_with_self/agent.n_games*100:.1f}%)")
-        print(f"   🍎 Total food collected: {food_collected}")
-        print(f"   🎯 Challenge progression: 6→{max_obstacles_reached} obstacles")
+        print(f"   Max obstacles reached: {max_obstacles_reached}")
+        print(f"   Obstacle collisions: {collision_with_obstacles} ({collision_with_obstacles/agent.n_games*100:.1f}%)")
+        print(f"   Wall collisions: {collision_with_walls} ({collision_with_walls/agent.n_games*100:.1f}%)")
+        print(f"   Self collisions: {collision_with_self} ({collision_with_self/agent.n_games*100:.1f}%)")
+        print(f"   Total food collected: {food_collected}")
+        print(f"   Challenge progression: 6→{max_obstacles_reached} obstacles")
         agent.model.save()
-        print("💾 Final model saved!")
+        print("Final model saved!")
 
 def train_intensive():
     """Intensive training for better performance"""
@@ -145,9 +145,9 @@ def train_intensive():
     agent = Agent()
     game = SnakeGameAI()
     
-    print("🔥 Starting INTENSIVE Training (No console spam)")
-    print("🎯 Target: Train until very high performance")
-    print("📊 Progress will be shown every 100 games")
+    print("Starting INTENSIVE Training (No console spam)")
+    print("Target: Train until very high performance")
+    print("Progress will be shown every 100 games")
     print("-" * 50)
     
     try:
@@ -168,7 +168,7 @@ def train_intensive():
                 if score > record:
                     record = score
                     agent.model.save()
-                    print(f"🎉 NEW RECORD! Game {agent.n_games}, Score: {score}")
+                    print(f"NEW RECORD! Game {agent.n_games}, Score: {score}")
 
                 plot_scores.append(score)
                 total_score += score
@@ -184,10 +184,10 @@ def train_intensive():
                           f"Exploration: {epsilon:.0f}%")
                     
     except KeyboardInterrupt:
-        print(f"\n📊 Intensive Training Complete!")
+        print(f"\nIntensive Training Complete!")
         print(f"   Games: {agent.n_games} | Record: {record}")
         agent.model.save()
-        print("💾 Model saved!")
+        print("Model saved!")
 
 if __name__ == '__main__':
     print("Choose training mode:")

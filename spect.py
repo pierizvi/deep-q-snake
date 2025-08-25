@@ -1,68 +1,87 @@
 import torch
-import numpy as np
+import numpy as np  # Used in visualize_weights function
 import matplotlib.pyplot as plt
-import seaborn as sns
-from collections import defaultdict
+import seaborn as sns  # Used for plot styling
+from collections import defaultdict  # Might be used in future extensions
 import os
 
 def explore_model_weights(model_path='./models/model.pth'):
     """Explore and visualize the weights in your trained model"""
     
-    print("🔍 Loading and Exploring Model Weights...")
+    models_dir = './models'
+    if os.path.exists(models_dir):
+        model_files = [f for f in os.listdir(models_dir) if f.endswith('.pth')]
+        if model_files:
+            print("Available models:")
+            for i, model_file in enumerate(model_files, 1):
+                print(f"   {i}. {model_file}")
+            
+            try:
+                choice = int(input("Select model number (or press Enter for latest): "))
+                if 1 <= choice <= len(model_files):
+                    model_path = os.path.join(models_dir, model_files[choice-1])
+                else:
+                    model_path = './models/model.pth'
+            except:
+                model_path = './models/model.pth'
+        else:
+            model_path = './models/model.pth'
+    
+    print("Exploring Model Weights...")
     print("=" * 60)
     
     try:
         # Load the model
         model_state = torch.load(model_path, map_location='cpu')
         
-        print(f"📁 Model file: {model_path}")
-        print(f"🏗️  Layers found: {len(model_state)} layers")
+        print(f"Model file: {model_path}")
+        print(f"Layers found: {len(model_state)} layers")
         print()
         
         # Analyze each layer
         for layer_name, weights in model_state.items():
-            print(f"🧠 Layer: {layer_name}")
+            print(f"Layer: {layer_name}")
             print(f"   Shape: {weights.shape}")
             print(f"   Type: {'Weight Matrix' if 'weight' in layer_name else 'Bias Vector'}")
             print(f"   Parameters: {weights.numel():,}")
             
             # Statistical analysis
             weights_flat = weights.flatten()
-            print(f"   📊 Statistics:")
+            print(f"   Statistics:")
             print(f"      Mean: {weights_flat.mean():.6f}")
             print(f"      Std:  {weights_flat.std():.6f}")
             print(f"      Min:  {weights_flat.min():.6f}")
             print(f"      Max:  {weights_flat.max():.6f}")
             
             # Show some actual weight values
-            print(f"   🔢 Sample weights: {weights_flat[:10].tolist()}")
+            print(f"   Sample weights: {weights_flat[:10].tolist()}")
             print()
         
         return model_state
         
     except Exception as e:
-        print(f"❌ Error loading model: {e}")
+        print(f"Error loading model: {e}")
         return None
 
 def print_specific_weights(model_state, layer_name, num_weights=20):
     """Print specific weights from a layer"""
     
     if layer_name not in model_state:
-        print(f"❌ Layer '{layer_name}' not found!")
+        print(f"Layer '{layer_name}' not found!")
         print(f"Available layers: {list(model_state.keys())}")
         return
     
     weights = model_state[layer_name]
     weights_flat = weights.flatten()
     
-    print(f"🔍 Detailed View: {layer_name}")
+    print(f"Detailed View: {layer_name}")
     print("=" * 50)
     print(f"Shape: {weights.shape}")
     print(f"Total parameters: {weights.numel():,}")
     print()
     
     # Print first N weights with their positions
-    print(f"📋 First {num_weights} weights:")
+    print(f"First {num_weights} weights:")
     for i in range(min(num_weights, len(weights_flat))):
         weight_val = weights_flat[i].item()
         print(f"   Weight[{i:3d}]: {weight_val:8.6f}")
@@ -74,7 +93,7 @@ def print_specific_weights(model_state, layer_name, num_weights=20):
     
     # If it's a 2D weight matrix, show some structure
     if len(weights.shape) == 2:
-        print("🔗 Connection Strength Examples:")
+        print("Connection Strength Examples:")
         print("   (How much input neuron X influences output neuron Y)")
         rows, cols = weights.shape
         
@@ -91,13 +110,13 @@ def print_specific_weights(model_state, layer_name, num_weights=20):
 def analyze_learning_patterns(model_state):
     """Analyze what patterns the AI learned"""
     
-    print("🧠 Learning Pattern Analysis")
+    print("Learning Pattern Analysis")
     print("=" * 40)
     
     # Analyze input layer weights (most interpretable)
     input_weights = model_state['linear1.weight']  # 512 x 42
     
-    print(f"📊 Input Layer Analysis (42 game features → 512 hidden neurons)")
+    print(f"Input Layer Analysis (42 game features → 512 hidden neurons)")
     print()
     
     # Each row represents how one hidden neuron responds to all 42 input features
@@ -106,7 +125,7 @@ def analyze_learning_patterns(model_state):
     # Feature importance: which input features have the strongest overall connections
     feature_importance = torch.abs(input_weights).mean(dim=0)  # Average across all hidden neurons
     
-    print("🎯 Most Important Game Features (by weight strength):")
+    print("Most Important Game Features (by weight strength):")
     feature_names = [
         "Danger straight", "Danger right", "Danger left",
         "Facing left", "Facing right", "Facing up", "Facing down",
@@ -138,7 +157,7 @@ def analyze_learning_patterns(model_state):
     print()
     
     # Hidden neuron specialization
-    print("🔍 Hidden Neuron Specializations:")
+    print("Hidden Neuron Specializations:")
     print("   (What each hidden neuron learned to detect)")
     
     for neuron_idx in range(min(5, input_weights.shape[0])):  # First 5 hidden neurons
@@ -158,7 +177,7 @@ def analyze_learning_patterns(model_state):
 def visualize_weights(model_state, save_plots=True):
     """Create visualizations of the weight distributions"""
     
-    print("📊 Creating Weight Visualizations...")
+    print("Creating Weight Visualizations...")
     
     # Set up the plot style
     plt.style.use('default')
@@ -233,14 +252,14 @@ def visualize_weights(model_state, save_plots=True):
     
     if save_plots:
         plt.savefig('snake_ai_weights_analysis.png', dpi=300, bbox_inches='tight')
-        print("💾 Visualization saved as 'snake_ai_weights_analysis.png'")
+        print("Visualization saved as 'snake_ai_weights_analysis.png'")
     
     plt.show()
 
 def save_weights_to_file(model_state, filename='model_weights.txt'):
     """Save all weights to a text file for detailed examination"""
     
-    print(f"💾 Saving all weights to {filename}...")
+    print(f"Saving all weights to {filename}...")
     
     with open(filename, 'w') as f:
         f.write("SNAKE AI NEURAL NETWORK WEIGHTS\n")
@@ -264,13 +283,13 @@ def save_weights_to_file(model_state, filename='model_weights.txt'):
         
         f.write(f"TOTAL PARAMETERS: {total_params:,}\n")
     
-    print(f"✅ Complete weight dump saved to {filename}")
-    print(f"📊 File contains {total_params:,} individual weight values")
+    print(f"Complete weight dump saved to {filename}")
+    print(f"File contains {total_params:,} individual weight values")
 
 def main():
     """Main function to explore your model weights"""
     
-    print("🧠 Snake AI Weight Explorer")
+    print("Snake AI Weight Explorer")
     print("=" * 40)
     
     # Check available models
@@ -278,7 +297,7 @@ def main():
     if os.path.exists(models_dir):
         model_files = [f for f in os.listdir(models_dir) if f.endswith('.pth')]
         if model_files:
-            print("📁 Available models:")
+            print("Available models:")
             for i, model_file in enumerate(model_files, 1):
                 print(f"   {i}. {model_file}")
             
@@ -305,12 +324,12 @@ def main():
     
     # Interactive menu
     while True:
-        print("\n🔍 What would you like to explore?")
-        print("1. 📋 Print specific layer weights")
-        print("2. 🧠 Analyze learning patterns")
-        print("3. 📊 Create visualizations")
-        print("4. 💾 Save all weights to file")
-        print("5. 🚪 Exit")
+        print("\nWhat would you like to explore?")
+        print("1. Print specific layer weights")
+        print("2. Analyze learning patterns")
+        print("3. Create visualizations")
+        print("4. Save all weights to file")
+        print("5. Exit")
         
         choice = input("\nSelect option (1-5): ")
         
@@ -327,19 +346,19 @@ def main():
             try:
                 visualize_weights(model_state)
             except Exception as e:
-                print(f"❌ Visualization failed: {e}")
-                print("💡 Make sure matplotlib is installed: pip install matplotlib seaborn")
+                print(f"Visualization failed: {e}")
+                print("Make sure matplotlib is installed: pip install matplotlib seaborn")
                 
         elif choice == '4':
             filename = input("Enter filename (default: model_weights.txt): ") or "model_weights.txt"
             save_weights_to_file(model_state, filename)
             
         elif choice == '5':
-            print("👋 Happy exploring!")
+            print("Happy exploring!")
             break
             
         else:
-            print("❌ Invalid choice!")
+            print("Invalid choice!")
 
 if __name__ == "__main__":
     main()

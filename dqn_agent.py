@@ -107,7 +107,7 @@ class Agent:
     def _initialize_model(self, state_size):
         """Initialize model with correct input size"""
         if not self._model_initialized:
-            print(f"🧠 Initializing neural network with {state_size} input features")
+            print(f"Initializing neural network with {state_size} input features")
             self.model = Linear_QNet(state_size, 512, 3)
             self.trainer = QTrainer(self.model, lr=0.001, gamma=self.gamma)
             self._model_initialized = True
@@ -331,12 +331,12 @@ class Agent:
         """Set agent to inference mode (pure exploitation, no exploration)"""
         self._inference_mode = True
         self.epsilon = 0
-        print("🔒 Agent set to PURE EXPLOITATION mode (epsilon locked at 0)")
+        print("Agent set to PURE EXPLOITATION mode (epsilon locked at 0)")
         
     def set_training_mode(self):
         """Set agent back to training mode"""
         self._inference_mode = False
-        print("🎓 Agent set to TRAINING mode (epsilon-greedy)")
+        print("Agent set to TRAINING mode (epsilon-greedy)")
         
     def is_exploiting(self):
         """Check if agent is in pure exploitation mode"""
